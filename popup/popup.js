@@ -39,6 +39,8 @@ async function init() {
 
 optionsBtn.addEventListener("click", () => {
   const open = settingsPanel.classList.toggle("hidden") === false;
+  optionsBtn.classList.toggle("active", open);
+  optionsBtn.setAttribute("aria-pressed", String(open));
   optionsBtn.title = open ? "설정 닫기" : "LLM 설정";
 });
 
