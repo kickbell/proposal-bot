@@ -10,12 +10,27 @@
     <main class="container">
       <header class="header">
         <h1>Proposal Bot</h1>
-        <button id="optionsBtn" class="icon-btn" title="설정">⚙️</button>
+        <button id="optionsBtn" class="icon-btn" title="LLM 설정">⚙️</button>
       </header>
 
-      <button id="analyzeBtn" type="button">이 페이지 분석</button>
+      <section class="profile-section">
+        <h2>내 프로필</h2>
+        <label for="career">경력 요약</label>
+        <textarea id="career" rows="3" placeholder="예: 5년차 백엔드 엔지니어, Java/Spring 위주..."></textarea>
+
+        <label for="domain">도메인 지식</label>
+        <textarea id="domain" rows="3" placeholder="예: 핀테크, 결제 시스템, 정산 파이프라인..."></textarea>
+
+        <label for="stack">기술스택</label>
+        <textarea id="stack" rows="2" placeholder="예: Java, Spring Boot, Kafka, PostgreSQL, AWS..."></textarea>
+
+        <button id="saveProfileBtn" class="secondary-btn" type="button">프로필 저장</button>
+        <p id="profileToast" class="toast hidden">저장되었습니다.</p>
+      </section>
 
       <div id="result" class="result hidden"></div>
+
+      <button id="analyzeBtn" type="button">이 페이지 분석</button>
     </main>
     <script type="module" src="popup.js"></script>
   </body>

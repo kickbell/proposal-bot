@@ -2,45 +2,26 @@
 <html lang="ko">
   <head>
     <meta charset="UTF-8" />
-    <title>Proposal Bot 설정</title>
+    <title>Proposal Bot — LLM 설정</title>
     <link rel="stylesheet" href="options.css" />
   </head>
   <body>
     <main class="container">
-      <h1>Proposal Bot 설정</h1>
+      <h1>LLM 설정</h1>
 
       <section>
-        <h2>내 프로필</h2>
-        <label for="career">경력 요약</label>
-        <textarea id="career" rows="4" placeholder="예: 5년차 백엔드 엔지니어, Java/Spring 위주..."></textarea>
-
-        <label for="domain">도메인 지식</label>
-        <textarea id="domain" rows="4" placeholder="예: 핀테크, 결제 시스템, 정산 파이프라인..."></textarea>
-
-        <label for="stack">기술스택</label>
-        <textarea id="stack" rows="3" placeholder="예: Java, Spring Boot, Kafka, PostgreSQL, AWS..."></textarea>
-      </section>
-
-      <section>
-        <h2>아픈 지점 가이드</h2>
-        <label for="guide">분석 가이드 (비우면 기본값 사용)</label>
-        <textarea id="guide" rows="6" placeholder="채용공고에서 어떤 문제를 찾을지 가이드를 입력하세요..."></textarea>
-      </section>
-
-      <section>
-        <h2>LLM 설정</h2>
         <label for="provider">Provider</label>
         <select id="provider">
+          <option value="gemini">Gemini (Google) — 무료</option>
           <option value="claude">Claude (Anthropic)</option>
           <option value="openai">OpenAI</option>
-          <option value="gemini">Gemini (Google)</option>
         </select>
 
         <label for="model">모델명</label>
-        <input id="model" type="text" placeholder="예: claude-opus-4-5, gpt-4o, gemini-1.5-pro" />
+        <input id="model" type="text" placeholder="예: gemini-2.0-flash, claude-sonnet-4-6, gpt-4o" />
 
         <label for="apiKey">API 키</label>
-        <input id="apiKey" type="password" placeholder="sk-..." autocomplete="off" />
+        <input id="apiKey" type="password" placeholder="API 키를 입력하세요" autocomplete="off" />
       </section>
 
       <button id="saveBtn" type="button">저장</button>
