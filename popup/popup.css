@@ -10,18 +10,35 @@ body {
 }
 
 .container {
-  width: 280px;
+  width: 320px;
   padding: 16px;
 }
 
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
 h1 {
-  margin: 0 0 8px;
+  margin: 0;
   font-size: 18px;
 }
 
-p {
-  margin: 0 0 12px;
-  font-size: 14px;
+.icon-btn {
+  width: auto;
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  line-height: 1;
+}
+
+.icon-btn:hover {
+  background: #e5e7eb;
 }
 
 button {
@@ -30,11 +47,68 @@ button {
   border-radius: 8px;
   padding: 10px 12px;
   background: #2563eb;
-  color: #ffffff;
+  color: #fff;
   font-size: 14px;
+  font-weight: 600;
   cursor: pointer;
 }
 
 button:hover {
   background: #1d4ed8;
+}
+
+button:disabled {
+  background: #93c5fd;
+  cursor: default;
+}
+
+.result {
+  margin-top: 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  overflow: hidden;
+}
+
+.hidden {
+  display: none;
+}
+
+.card {
+  background: #fff;
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin-bottom: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.card-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #6b7280;
+  margin-bottom: 6px;
+}
+
+.card-body {
+  color: #1f2937;
+  line-height: 1.5;
+  word-break: break-all;
+}
+
+.card--error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+}
+
+.card--error .card-body {
+  color: #dc2626;
+}
+
+.card--warn {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+}
+
+.card--warn .card-body {
+  color: #92400e;
 }

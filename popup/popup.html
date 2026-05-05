@@ -8,9 +8,14 @@
   </head>
   <body>
     <main class="container">
-      <h1>Proposal Bot</h1>
-      <p id="status">확장이 준비되었습니다.</p>
-      <button id="pingButton" type="button">백그라운드 Ping</button>
+      <header class="header">
+        <h1>Proposal Bot</h1>
+        <button id="optionsBtn" class="icon-btn" title="설정">⚙️</button>
+      </header>
+
+      <button id="analyzeBtn" type="button">이 페이지 분석</button>
+
+      <div id="result" class="result hidden"></div>
     </main>
     <script type="module" src="popup.js"></script>
   </body>
