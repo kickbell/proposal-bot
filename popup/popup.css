@@ -50,14 +50,7 @@ h2 {
 
 .icon-btn svg {
   fill: currentColor;
-  stroke: none;
   display: block;
-}
-
-/* circle은 stroke로 그림 — fill 제거 */
-.icon-btn svg circle {
-  fill: none;
-  stroke: currentColor;
 }
 
 .icon-btn:hover {
