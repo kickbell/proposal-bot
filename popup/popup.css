@@ -113,8 +113,18 @@ button:disabled {
   cursor: default;
 }
 
-.secondary-btn {
+.btn-row {
+  display: flex;
+  gap: 6px;
   margin-top: 10px;
+}
+
+.btn-row .secondary-btn {
+  margin-top: 0;
+  flex: 1;
+}
+
+.secondary-btn {
   background: #f3f4f6;
   color: #374151;
   font-size: 12px;
@@ -123,6 +133,71 @@ button:disabled {
 
 .secondary-btn:hover {
   background: #e5e7eb;
+}
+
+.accent-btn {
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+.accent-btn:hover {
+  background: #dbeafe;
+}
+
+.accent-btn:disabled {
+  background: #eff6ff;
+  color: #93c5fd;
+}
+
+.summary-box {
+  margin-top: 10px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.summary-label {
+  margin: 0 0 5px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #15803d;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.summary-badge {
+  background: #dcfce7;
+  color: #15803d;
+  font-size: 10px;
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.summary-text {
+  margin: 0 0 8px;
+  font-size: 12px;
+  color: #1f2937;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.clear-btn {
+  width: auto;
+  background: none;
+  border: 1px solid #86efac;
+  border-radius: 5px;
+  padding: 3px 8px;
+  font-size: 11px;
+  color: #15803d;
+  cursor: pointer;
+}
+
+.clear-btn:hover {
+  background: #dcfce7;
 }
 
 .toast {

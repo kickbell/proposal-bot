@@ -1,40 +1,94 @@
 import { getProfile, getLlmConfig } from "../lib/storage.js";
 
-const profileField = document.getElementById("profile");
+const profileRawEl = document.getElementById("profileRaw");
 const saveProfileBtn = document.getElementById("saveProfileBtn");
+const summarizeBtn = document.getElementById("summarizeBtn");
+const summaryBox = document.getElementById("summaryBox");
+const summaryTextEl = document.getElementById("summaryText");
+const clearSummaryBtn = document.getElementById("clearSummaryBtn");
 const profileToast = document.getElementById("profileToast");
 const analyzeBtn = document.getElementById("analyzeBtn");
 const optionsBtn = document.getElementById("optionsBtn");
 const resultEl = document.getElementById("result");
 
+// 프로필 로드 — 팝업 열릴 때 1회만 실행
 async function loadProfile() {
   const profile = await getProfile();
-  if (profile?.text) {
-    profileField.value = profile.text;
+  if (profile?.raw) profileRawEl.value = profile.raw;
+  renderSummary(profile?.summary ?? null);
+}
+
+function renderSummary(summary) {
+  if (summary) {
+    summaryTextEl.textContent = summary;
+    summaryBox.classList.remove("hidden");
+  } else {
+    summaryBox.classList.add("hidden");
   }
 }
 
+// 원본 저장 (요약본은 건드리지 않음)
 saveProfileBtn.addEventListener("click", async () => {
-  await chrome.storage.local.set({ profile: { text: profileField.value.trim() } });
-  profileToast.classList.remove("hidden");
-  setTimeout(() => profileToast.classList.add("hidden"), 2000);
+  const profile = await getProfile() ?? {};
+  await chrome.storage.local.set({ profile: { ...profile, raw: profileRawEl.value.trim() } });
+  showToast();
 });
 
+// 요약하기 — LLM 연동 전 스텁
+summarizeBtn.addEventListener("click", async () => {
+  const raw = profileRawEl.value.trim();
+  if (!raw) {
+    alert("프로필을 먼저 입력해 주세요.");
+    return;
+  }
+
+  summarizeBtn.disabled = true;
+  summarizeBtn.textContent = "요약 중...";
+
+  try {
+    // TODO(다음 라운드): LLM API로 raw → summary 압축
+    // 현재는 스텁 — 실제 호출 없이 안내만 표시
+    throw new Error("LLM 요약은 다음 단계에서 구현됩니다.");
+  } catch (err) {
+    alert(err.message);
+  } finally {
+    summarizeBtn.disabled = false;
+    summarizeBtn.textContent = "프로필 요약하기";
+  }
+});
+
+// 요약 삭제 → 재요약 유도
+clearSummaryBtn.addEventListener("click", async () => {
+  const profile = await getProfile() ?? {};
+  delete profile.summary;
+  await chrome.storage.local.set({ profile });
+  renderSummary(null);
+});
+
+// 설정 페이지
 optionsBtn.addEventListener("click", () => {
   chrome.runtime.openOptionsPage();
 });
 
+// 페이지 분석
 analyzeBtn.addEventListener("click", async () => {
   resultEl.innerHTML = "";
   resultEl.classList.add("hidden");
   setLoading(true);
 
   try {
-    const profileText = profileField.value.trim();
+    const profile = await getProfile();
 
-    if (!profileText) {
-      showCard("warn", "프로필 필요", "프로필을 먼저 입력하고 저장해 주세요.");
+    // 요약본 있으면 캐시 사용, 없으면 원본으로 fallback
+    const profileForAnalysis = profile?.summary ?? profile?.raw ?? "";
+
+    if (!profileForAnalysis) {
+      showCard("warn", "프로필 필요", "프로필을 입력하고 저장한 뒤, '프로필 요약하기'를 눌러 주세요.");
       return;
+    }
+
+    if (!profile?.summary) {
+      showCard("warn", "요약본 없음", "원본 프로필로 분석합니다. 토큰 절약을 위해 '프로필 요약하기'를 권장합니다.");
     }
 
     const llmConfig = await getLlmConfig();
@@ -68,6 +122,11 @@ analyzeBtn.addEventListener("click", async () => {
     setLoading(false);
   }
 });
+
+function showToast() {
+  profileToast.classList.remove("hidden");
+  setTimeout(() => profileToast.classList.add("hidden"), 2000);
+}
 
 function setLoading(on) {
   analyzeBtn.disabled = on;
