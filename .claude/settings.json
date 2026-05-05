@@ -1,3 +1,8 @@
 {
-  "dangerouslySkipPermissions": true
+  "dangerouslySkipPermissions": true,
+  "allowedTools": [
+    "Bash(git *)",
+    "Bash(mkdir *)",
+    "Bash(python3 *)"
+  ]
 }
