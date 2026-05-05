@@ -13,6 +13,28 @@
         <button id="optionsBtn" class="icon-btn" title="LLM 설정">⚙️</button>
       </header>
 
+      <!-- LLM 설정 패널 (토글) -->
+      <section id="settingsPanel" class="settings-panel hidden">
+        <label for="provider">Provider</label>
+        <select id="provider">
+          <option value="gemini">Gemini (Google) — 무료</option>
+          <option value="claude">Claude (Anthropic)</option>
+          <option value="openai">OpenAI</option>
+        </select>
+
+        <label for="llmModel">모델명</label>
+        <input id="llmModel" type="text" placeholder="예: gemini-2.0-flash, claude-sonnet-4-6, gpt-4o" />
+
+        <label for="apiKey">API 키</label>
+        <input id="apiKey" type="password" placeholder="API 키를 입력하세요" autocomplete="off" />
+
+        <div class="btn-row">
+          <button id="saveLlmBtn" class="secondary-btn accent-btn" type="button">저장</button>
+        </div>
+        <p id="llmToast" class="toast hidden">저장되었습니다.</p>
+      </section>
+
+      <!-- 프로필 섹션 -->
       <section class="profile-section">
         <h2>내 프로필</h2>
         <label for="profileRaw">경력 · 도메인 지식 · 기술스택</label>
