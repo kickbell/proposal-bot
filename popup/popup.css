@@ -83,6 +83,7 @@ textarea {
   color: #1f2937;
   background: #fafafa;
   resize: vertical;
+  min-height: 140px;
 }
 
 textarea:focus {

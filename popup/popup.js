@@ -1,58 +1,39 @@
 import { getProfile, getLlmConfig } from "../lib/storage.js";
 
-const fields = {
-  career: document.getElementById("career"),
-  domain: document.getElementById("domain"),
-  stack: document.getElementById("stack"),
-};
+const profileField = document.getElementById("profile");
 const saveProfileBtn = document.getElementById("saveProfileBtn");
 const profileToast = document.getElementById("profileToast");
 const analyzeBtn = document.getElementById("analyzeBtn");
 const optionsBtn = document.getElementById("optionsBtn");
 const resultEl = document.getElementById("result");
 
-// 저장된 프로필 로드
 async function loadProfile() {
   const profile = await getProfile();
-  if (profile) {
-    fields.career.value = profile.career ?? "";
-    fields.domain.value = profile.domain ?? "";
-    fields.stack.value = profile.stack ?? "";
+  if (profile?.text) {
+    profileField.value = profile.text;
   }
 }
 
-// 프로필 저장
 saveProfileBtn.addEventListener("click", async () => {
-  const profile = {
-    career: fields.career.value.trim(),
-    domain: fields.domain.value.trim(),
-    stack: fields.stack.value.trim(),
-  };
-  await chrome.storage.local.set({ profile });
+  await chrome.storage.local.set({ profile: { text: profileField.value.trim() } });
   profileToast.classList.remove("hidden");
   setTimeout(() => profileToast.classList.add("hidden"), 2000);
 });
 
-// 설정(LLM) 페이지 열기
 optionsBtn.addEventListener("click", () => {
   chrome.runtime.openOptionsPage();
 });
 
-// 페이지 분석
 analyzeBtn.addEventListener("click", async () => {
   resultEl.innerHTML = "";
   resultEl.classList.add("hidden");
   setLoading(true);
 
   try {
-    const profile = {
-      career: fields.career.value.trim(),
-      domain: fields.domain.value.trim(),
-      stack: fields.stack.value.trim(),
-    };
+    const profileText = profileField.value.trim();
 
-    if (!profile.career && !profile.stack) {
-      showCard("warn", "프로필 필요", "경력 또는 기술스택을 먼저 입력하고 저장해 주세요.");
+    if (!profileText) {
+      showCard("warn", "프로필 필요", "프로필을 먼저 입력하고 저장해 주세요.");
       return;
     }
 

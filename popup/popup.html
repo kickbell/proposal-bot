@@ -15,14 +15,11 @@
 
       <section class="profile-section">
         <h2>내 프로필</h2>
-        <label for="career">경력 요약</label>
-        <textarea id="career" rows="3" placeholder="예: 5년차 백엔드 엔지니어, Java/Spring 위주..."></textarea>
-
-        <label for="domain">도메인 지식</label>
-        <textarea id="domain" rows="3" placeholder="예: 핀테크, 결제 시스템, 정산 파이프라인..."></textarea>
-
-        <label for="stack">기술스택</label>
-        <textarea id="stack" rows="2" placeholder="예: Java, Spring Boot, Kafka, PostgreSQL, AWS..."></textarea>
+        <label for="profile">경력 · 도메인 지식 · 기술스택</label>
+        <textarea id="profile" rows="10" placeholder="예시:
+5년차 백엔드 엔지니어. Java/Spring Boot 위주로 개발했고, Kafka·PostgreSQL·AWS 사용 경험 있음.
+핀테크 도메인 전문 — 결제·정산 파이프라인 설계 및 운영 경험.
+기술스택: Java, Spring Boot, Kafka, PostgreSQL, Redis, AWS (ECS/RDS/SQS)"></textarea>
 
         <button id="saveProfileBtn" class="secondary-btn" type="button">프로필 저장</button>
         <p id="profileToast" class="toast hidden">저장되었습니다.</p>
