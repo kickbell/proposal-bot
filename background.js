@@ -1,3 +1,3 @@
 chrome.runtime.onInstalled.addListener(() => {
-  console.log("Proposal Bot installed.");
+  console.log("Career Matchpoint installed.");
 });

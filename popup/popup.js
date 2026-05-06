@@ -474,7 +474,7 @@ function pbotInjectResults({ matches }) {
       card.setAttribute("data-pbot-card", i);
       card.style.cssText = `border-left-color:${color.border} !important;background:${color.bg}40 !important;`;
       card.innerHTML = `
-        <div class="pbot-label" style="color:${color.text}">💡 Proposal Bot</div>
+        <div class="pbot-label" style="color:${color.text}">💡 Career Matchpoint</div>
         <div class="pbot-msg">${highlightInMessage(match.message ?? "", match.keyword, color)}</div>
       `;
       block.insertAdjacentElement("afterend", card);

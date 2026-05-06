@@ -1,4 +1,4 @@
-# proposal-bot
+# Career Matchpoint
 
 > 구현 계획은 [docs/PLAN.md](docs/PLAN.md) 참조.
 

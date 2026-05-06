@@ -1,10 +1,10 @@
 {
   "manifest_version": 3,
-  "name": "Proposal Bot",
-  "version": "0.1.0",
-  "description": "채용공고에서 회사의 아픈 지점을 찾아 기술 제안 방향을 제시하는 Chrome 확장 프로그램",
+  "name": "Career Matchpoint",
+  "version": "1.0.0",
+  "description": "채용공고에서 나만의 어필 포인트를 찾아드려요. 내 경력 기반 AI 취업 전략 제안 서비스.",
   "action": {
-    "default_title": "Proposal Bot",
+    "default_title": "Career Matchpoint",
     "default_popup": "popup/popup.html",
     "default_icon": {
       "16": "icons/icon16.png",
