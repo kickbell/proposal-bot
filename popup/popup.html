@@ -15,7 +15,26 @@
         </div>
       </header>
 
+      <p class="subtitle">프로필과 API 키를 먼저 설정해 주세요.<br>채용공고 페이지에서 분석 버튼을 누르면<br>나만의 취업 전략을 알려드려요.</p>
+
       <div id="result" class="result hidden"></div>
+
+      <!-- 프로필 섹션 -->
+      <section class="panel">
+        <div class="panel-header" id="profileToggle" role="button" tabindex="0">
+          <span class="toggle-icon">›</span>
+          <span class="panel-title">내 프로필</span>
+        </div>
+        <div class="panel-body" id="profileBody">
+          <label for="profileRaw">나의 경력 · 도메인 지식 · 기술스택 등을 입력해주세요.<br><span class="label-note">(데이터는 브라우저 내에만 저장되며, 서버로 전송되지 않아요.)</span></label>
+          <textarea id="profileRaw" rows="6" placeholder="예시:
+5년차 백엔드 엔지니어. Java/Spring Boot 위주로 개발했고, Kafka·PostgreSQL·AWS 사용 경험 있음.
+핀테크 도메인 전문 — 결제·정산 파이프라인 설계 및 운영 경험.
+기술스택: Java, Spring Boot, Kafka, PostgreSQL, Redis, AWS (ECS/RDS/SQS)"></textarea>
+
+          <p id="profileToast" class="toast hidden">저장되었습니다.</p>
+        </div>
+      </section>
 
       <!-- 설정 섹션 -->
       <section class="panel">
@@ -55,23 +74,6 @@
           </div>
 
           <p id="llmToast" class="toast hidden">저장되었습니다.</p>
-        </div>
-      </section>
-
-      <!-- 프로필 섹션 -->
-      <section class="panel">
-        <div class="panel-header" id="profileToggle" role="button" tabindex="0">
-          <span class="toggle-icon">›</span>
-          <span class="panel-title">내 프로필</span>
-        </div>
-        <div class="panel-body" id="profileBody">
-          <label for="profileRaw">나의 경력 · 도메인 지식 · 기술스택 등을 입력해주세요.<br><span class="label-note">(데이터는 브라우저 내에만 저장되며, 서버로 전송되지 않아요.)</span></label>
-          <textarea id="profileRaw" rows="10" placeholder="예시:
-5년차 백엔드 엔지니어. Java/Spring Boot 위주로 개발했고, Kafka·PostgreSQL·AWS 사용 경험 있음.
-핀테크 도메인 전문 — 결제·정산 파이프라인 설계 및 운영 경험.
-기술스택: Java, Spring Boot, Kafka, PostgreSQL, Redis, AWS (ECS/RDS/SQS)"></textarea>
-
-          <p id="profileToast" class="toast hidden">저장되었습니다.</p>
         </div>
       </section>
 
