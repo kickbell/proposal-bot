@@ -170,6 +170,9 @@ analyzeBtn.addEventListener("click", async () => {
       args: [result],
     });
 
+    // 팝업에 적합도 카드 표시
+    showFitnessCard(result);
+
     setProgress(100, "분석 완료!");
     await new Promise(r => setTimeout(r, 500));
 
@@ -192,29 +195,43 @@ function setProgress(pct, label) {
 }
 
 const PROGRESS_LABELS = [
-  { from: 10, label: "AI에게 분석을 요청하고 있어요..." },
-  { from: 25, label: "채용공고의 아픈 지점을 찾고 있어요..." },
-  { from: 40, label: "열심히 분석 중이에요..." },
-  { from: 55, label: "경력과 기술스택을 매칭하고 있어요..." },
-  { from: 70, label: "적합도를 계산하고 있어요..." },
-  { from: 82, label: "거의 다 됐어요!" },
+  { from: 10, label: "AI에게 분석을 요청하고 있어요" },
+  { from: 25, label: "채용공고의 아픈 지점을 찾고 있어요" },
+  { from: 40, label: "열심히 분석 중이에요" },
+  { from: 55, label: "경력과 기술스택을 매칭하고 있어요" },
+  { from: 70, label: "적합도를 계산하고 있어요" },
+  { from: 82, label: "거의 다 됐어요" },
 ];
 
 function startProgressSim(from, to, durationMs) {
   const step = (to - from) / (durationMs / 100);
   let current = from;
   let lastLabelIdx = -1;
+  let dotCount = 0;
+  let currentBaseLabel = null;
+
+  // 도트 애니메이션: 500ms마다 .→..→...→. 순환
+  const dotId = setInterval(() => {
+    if (!currentBaseLabel) return;
+    dotCount = (dotCount % 6) + 1;
+    progressLabel.textContent = currentBaseLabel + ".".repeat(dotCount);
+  }, 250);
+
   const id = setInterval(() => {
     current = Math.min(to, current + step);
     const idx = PROGRESS_LABELS.findLastIndex(l => current >= l.from);
     if (idx !== lastLabelIdx) {
       lastLabelIdx = idx;
-      setProgress(current, idx >= 0 ? PROGRESS_LABELS[idx].label : null);
+      dotCount = 0;
+      currentBaseLabel = idx >= 0 ? PROGRESS_LABELS[idx].label : null;
+      if (currentBaseLabel) setProgress(current, currentBaseLabel + ".");
+      else setProgress(current);
     } else {
       setProgress(current);
     }
   }, 100);
-  return () => clearInterval(id);
+
+  return () => { clearInterval(id); clearInterval(dotId); };
 }
 
 function setLoading(on) {
@@ -241,9 +258,23 @@ function escapeHtml(str) {
   return str.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\n/g,"<br>");
 }
 
+function showFitnessCard({ fitnessPercent, fitnessReason }) {
+  const card = document.createElement("div");
+  card.className = "card card--fitness";
+  card.innerHTML = `
+    <div class="card-fitness-top">
+      <span class="card-fitness-score">${fitnessPercent ?? "?"}%</span>
+      <span class="card-fitness-label">적합도</span>
+    </div>
+    <div class="card-fitness-reason">${escapeHtml(fitnessReason ?? "")}</div>
+  `;
+  resultEl.appendChild(card);
+  resultEl.classList.remove("hidden");
+}
+
 // ── 페이지 주입 함수 (executeScript로 실행 — 외부 스코프 참조 불가) ──────
 
-function pbotInjectResults({ matches, fitnessPercent, fitnessReason }) {
+function pbotInjectResults({ matches }) {
   const COLORS = [
     { bg: "#dbeafe", border: "#3b82f6", text: "#1e40af" },
     { bg: "#d1fae5", border: "#10b981", text: "#065f46" },
@@ -255,7 +286,6 @@ function pbotInjectResults({ matches, fitnessPercent, fitnessReason }) {
   document.querySelectorAll("[data-pbot-card]").forEach(el => el.remove());
   document.querySelectorAll(".pbot-hl").forEach(el => el.replaceWith(document.createTextNode(el.textContent)));
   document.getElementById("pbot-style")?.remove();
-  document.getElementById("pbot-fitness")?.remove();
 
   const style = document.createElement("style");
   style.id = "pbot-style";
@@ -274,35 +304,8 @@ function pbotInjectResults({ matches, fitnessPercent, fitnessReason }) {
       margin-bottom: 4px !important; opacity: 0.7 !important;
     }
     [data-pbot-card] .pbot-msg { margin: 0 !important; }
-    #pbot-fitness {
-      position: fixed; bottom: 24px; right: 24px; z-index: 2147483647;
-      background: #fff; border-radius: 12px; padding: 14px 18px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.15); min-width: 220px; max-width: 320px;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      border-top: 4px solid #2563eb;
-    }
-    #pbot-fitness-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 8px; }
-    #pbot-fitness-score { font-size: 22px; font-weight: 800; color: #2563eb; line-height: 1.1; }
-    #pbot-fitness-label { font-size: 10px; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 2px; }
-    #pbot-fitness-reason { font-size: 12px; color: #374151; line-height: 1.6; }
-    #pbot-fitness-close { background: none; border: none; cursor: pointer; font-size: 16px; color: #9ca3af; padding: 0; line-height: 1; flex-shrink: 0; }
   `;
   document.head.appendChild(style);
-
-  const badge = document.createElement("div");
-  badge.id = "pbot-fitness";
-  badge.innerHTML = `
-    <div id="pbot-fitness-header">
-      <div>
-        <div id="pbot-fitness-label">💡 Proposal Bot · 적합도</div>
-        <div id="pbot-fitness-score">${fitnessPercent ?? "?"}%</div>
-      </div>
-      <button id="pbot-fitness-close" title="닫기">✕</button>
-    </div>
-    <div id="pbot-fitness-reason">${(fitnessReason ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}</div>
-  `;
-  document.body.appendChild(badge);
-  document.getElementById("pbot-fitness-close").addEventListener("click", () => badge.remove());
 
   function esc(s) {
     return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
@@ -341,7 +344,6 @@ function pbotInjectResults({ matches, fitnessPercent, fitnessReason }) {
         if (["SCRIPT","STYLE","NOSCRIPT","TEXTAREA"].includes(p.tagName)) return NodeFilter.FILTER_REJECT;
         if (p.closest("[data-pbot-card]")) return NodeFilter.FILTER_REJECT;
         if (p.closest(".pbot-hl")) return NodeFilter.FILTER_REJECT;
-        if (p.closest("#pbot-fitness")) return NodeFilter.FILTER_REJECT;
         return NodeFilter.FILTER_ACCEPT;
       },
     });
