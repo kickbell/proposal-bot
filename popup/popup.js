@@ -40,9 +40,23 @@ const progressBar     = document.getElementById("progressBar");
 const progressPct     = document.getElementById("progressPct");
 const progressLabel   = document.getElementById("progressLabel");
 
-// 도움말
-document.getElementById("helpBtn").addEventListener("click", () => {
-  chrome.tabs.create({ url: "https://github.com/kickbell/proposal-bot/wiki" });
+// 도움말 — provider에 따라 API 키 발급 페이지로 이동
+const HELP_URLS = {
+  gemini: "https://flextudio.com/blog/gemini-1",
+  openai: "https://flextudio.com/blog/openai-1",
+  claude: "https://platform.claude.com/settings/keys",
+};
+
+const helpBtn = document.getElementById("helpBtn");
+
+function updateHelpBtn(provider) {
+  const url = HELP_URLS[provider] ?? HELP_URLS.gemini;
+  helpBtn.dataset.url = url;
+  helpBtn.dataset.tooltip = "API 키 발급 방법";
+}
+
+helpBtn.addEventListener("click", () => {
+  chrome.tabs.create({ url: helpBtn.dataset.url });
 });
 
 // ── 초기 로드 ──────────────────────────────────────────────
@@ -54,6 +68,7 @@ async function init() {
   providerEl.value = provider;
   updateModelOptions(provider, llm?.model ?? DEFAULT_MODELS[provider]);
   apiKeyEl.value = llm?.apiKey ?? "";
+  updateHelpBtn(provider);
 }
 
 // ── 패널 토글 ──────────────────────────────────────────────
@@ -94,7 +109,12 @@ async function saveLlmSettings() {
   showToast(llmToast);
 }
 
-providerEl.addEventListener("change", () => { updateModelOptions(providerEl.value, DEFAULT_MODELS[providerEl.value]); saveLlmSettings(); });
+providerEl.addEventListener("change", () => {
+  const p = providerEl.value;
+  updateModelOptions(p, DEFAULT_MODELS[p]);
+  updateHelpBtn(p);
+  saveLlmSettings();
+});
 llmModelEl.addEventListener("change", saveLlmSettings);
 apiKeyEl.addEventListener("change", saveLlmSettings);
 
