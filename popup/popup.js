@@ -258,14 +258,95 @@ function escapeHtml(str) {
   return str.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\n/g,"<br>");
 }
 
+const FITNESS_MESSAGES = {
+  90: [
+    "연봉 30% 올려달라고 할까요 😁?",
+    "사직서 미리 작성해둘까요 🔥?",
+    "이력서 손질하고 바로 지원하세요 🚀",
+    "이 공고 당신을 위해 만든 것 같아요 🎯",
+    "합격 후기 쓸 준비하세요 🏆",
+    "면접 복장 미리 골라두세요 👔",
+    "연락 먼저 올 수도 있어요 📞",
+    "지원하지 않을 이유가 없어요 ✨",
+    "지금 바로 지원하세요 ⚡",
+    "이건 진짜예요, 놓치면 아까워요 💫",
+  ],
+  70: [
+    "자소서에 힘 좀 주면 될 것 같아요 ✍️",
+    "충분히 승산 있는 공고예요 💪",
+    "서류는 통과할 것 같아요 📋",
+    "어필 포인트만 잘 살리면 돼요 🎯",
+    "좋은 기회예요, 놓치지 마세요 🍀",
+    "경쟁력 있어요, 도전해보세요 🌟",
+    "자신있게 지원해볼 만해요 😊",
+    "잘 맞는 공고예요, 준비 잘 하면 돼요 📝",
+    "가능성 충분해요 👍",
+    "자소서로 나머지 갭을 채워봐요 💡",
+  ],
+  50: [
+    "반반이에요, 도전해볼 만해요 🤔",
+    "잘 쓴 자소서 하나가 역전할 수 있어요 ✏️",
+    "강점에 집중해서 지원해보세요 🎯",
+    "쉽진 않지만 불가능하진 않아요 💭",
+    "포트폴리오로 갭을 메워봐요 💼",
+    "어필이 당락을 가를 것 같아요 🎲",
+    "준비 잘 하면 충분히 가능해요 🔑",
+    "도전 자체가 경험이 될 거예요 🌱",
+    "경험을 조금 더 살려보세요 📝",
+    "부족한 부분을 잘 포장해보세요 🎁",
+  ],
+  30: [
+    "패기로 밀어붙여 보는 건 어떨까요 💥",
+    "열정이 스펙을 이기는 경우도 있어요 🔥",
+    "약점보단 강점에 집중해 보세요 💪",
+    "갭이 있어요, 솔직함으로 승부해봐요 🤝",
+    "포트폴리오로 역전을 노려봐요 🎯",
+    "지금 도전하면 좋은 경험이 될 거예요 📚",
+    "어렵지만 불가능하진 않아요 🧗",
+    "정직하게 성장 가능성을 어필해봐요 🌿",
+    "쉽진 않겠지만 도전 자체가 경험이에요 🌱",
+    "잘 준비하면 충분히 가능해요 🛠️",
+  ],
+  0: [
+    "6개월 후에 다시 도전해봐요 📅",
+    "무모한 도전이 인생을 바꾸기도 해요 🌈",
+    "이 공고를 목표로 성장해봐요 🚀",
+    "솔직히 쉽지 않아요, 하지만 못할 건 없죠 😅",
+    "지금은 경험 삼아 도전해봐요 🎓",
+    "일단 써보는 것도 나쁘지 않아요 ✏️",
+    "준비가 더 필요한 공고예요 📖",
+    "갭이 크지만 열정으로 승부해봐요 ❤️",
+    "지금은 아니어도 언젠간 될 거예요 🌟",
+    "패기로 밀어붙여 보세요 💥",
+  ],
+};
+
+function fitnessTier(pct) {
+  if (pct >= 90) return 90;
+  if (pct >= 70) return 70;
+  if (pct >= 50) return 50;
+  if (pct >= 30) return 30;
+  return 0;
+}
+
+function fitnessColor(pct) {
+  if (pct >= 90) return { bg: "#ecfdf5", border: "#6ee7b7", score: "#059669" };
+  if (pct >= 70) return { bg: "#f0fdfa", border: "#99f6e4", score: "#0d9488" };
+  if (pct >= 50) return { bg: "#eff6ff", border: "#bfdbfe", score: "#2563eb" };
+  if (pct >= 30) return { bg: "#fff7ed", border: "#fed7aa", score: "#ea580c" };
+  return           { bg: "#fef2f2", border: "#fecaca", score: "#dc2626" };
+}
+
 function showFitnessCard({ fitnessPercent, fitnessReason }) {
+  const pct = fitnessPercent ?? 0;
+  const c = fitnessColor(pct);
+  const msgs = FITNESS_MESSAGES[fitnessTier(pct)];
+  const msg = msgs[Math.floor(Math.random() * msgs.length)];
   const card = document.createElement("div");
   card.className = "card card--fitness";
+  card.style.cssText = `background:${c.bg};border-color:${c.border};`;
   card.innerHTML = `
-    <div class="card-fitness-top">
-      <span class="card-fitness-score">${fitnessPercent ?? "?"}%</span>
-      <span class="card-fitness-label">적합도</span>
-    </div>
+    <div class="card-fitness-msg" style="color:${c.score}">적합도 <span class="card-fitness-score">${pct}%</span>에요! ${escapeHtml(msg)}</div>
     <div class="card-fitness-reason">${escapeHtml(fitnessReason ?? "")}</div>
   `;
   resultEl.appendChild(card);

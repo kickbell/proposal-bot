@@ -349,29 +349,19 @@ button:disabled {
 }
 
 .card--fitness {
-  background: #eff6ff;
-  border: 1px solid #bfdbfe;
+  border: 1px solid;
 }
 
-.card-fitness-top {
-  display: flex;
-  align-items: baseline;
-  gap: 6px;
+.card-fitness-msg {
+  font-size: 12px;
+  font-weight: 400;
   margin-bottom: 6px;
+  line-height: 1.5;
 }
 
 .card-fitness-score {
-  font-size: 26px;
+  font-size: 16px;
   font-weight: 400;
-  color: #2563eb;
-  line-height: 1;
-}
-
-.card-fitness-label {
-  font-size: 11px;
-  color: #6b7280;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
 }
 
 .card-fitness-reason {
