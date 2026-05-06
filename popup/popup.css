@@ -114,6 +114,12 @@ label:first-of-type {
   margin-top: 0;
 }
 
+.label-note {
+  font-size: 12px;
+  font-weight: 400;
+  color: #9ca3af;
+}
+
 textarea {
   width: 100%;
   box-sizing: border-box;
