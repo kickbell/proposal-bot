@@ -209,13 +209,18 @@ analyzeBtn.addEventListener("click", async () => {
 
     showCard("fit", `적합도 ${result.fitnessPercent ?? "?"}%`, "이 채용공고와의 매칭 적합도");
 
-    if (result.painPoints?.length) {
-      showCard("info", "회사의 아픈 지점",
-        result.painPoints.map((p, i) => `${i + 1}. ${p}`).join("\n"));
-    }
-    if (result.proposals?.length) {
-      showCard("info", "기술 제안 방향",
-        result.proposals.map((p, i) => `${i + 1}. ${p}`).join("\n"));
+    const matches = result.matches ?? [];
+    if (matches.length) {
+      try {
+        await chrome.scripting.executeScript({
+          target: { tabId: tab.id },
+          func: pbotInjectHighlights,
+          args: [matches],
+        });
+        showCard("info", `${matches.length}개 아픈 지점 발견`, "페이지에 하이라이트가 표시되었습니다. 스크롤하여 확인하세요.");
+      } catch {
+        showCard("warn", "하이라이트 실패", "페이지 주입에 실패했습니다.");
+      }
     }
   } catch (err) {
     showCard("error", "오류", err.message);
@@ -233,7 +238,7 @@ function showToast(el) {
 
 function setLoading(on) {
   analyzeBtn.disabled = on;
-  analyzeBtn.textContent = on ? "분석 중..." : "이 페이지 분석";
+  analyzeBtn.textContent = on ? "분석 중..." : "채용공고 분석하기";
 }
 
 function showCard(type, label, body) {
@@ -254,3 +259,125 @@ function escapeHtml(str) {
 }
 
 init();
+
+// ── 페이지 주입 함수 (executeScript로 페이지 컨텍스트에서 실행) ──────────
+// 이 함수는 팝업 스코프의 변수를 참조할 수 없음 — 완전히 자립적이어야 함
+
+function pbotInjectHighlights(matches) {
+  const COLORS = [
+    { bg: "#dbeafe", border: "#3b82f6", text: "#1e40af" },
+    { bg: "#d1fae5", border: "#10b981", text: "#065f46" },
+    { bg: "#fef3c7", border: "#f59e0b", text: "#92400e" },
+    { bg: "#ede9fe", border: "#8b5cf6", text: "#4c1d95" },
+    { bg: "#fce7f3", border: "#ec4899", text: "#831843" },
+  ];
+
+  // 이전 하이라이트 제거
+  document.querySelectorAll("[data-pbot-card]").forEach(el => el.remove());
+  document.querySelectorAll(".pbot-hl").forEach(el => {
+    el.replaceWith(document.createTextNode(el.textContent));
+  });
+  document.getElementById("pbot-style")?.remove();
+
+  // 스타일 주입
+  const style = document.createElement("style");
+  style.id = "pbot-style";
+  style.textContent = `
+    .pbot-hl { border-radius: 3px; padding: 1px 3px; font-weight: 600; }
+    [data-pbot-card] {
+      margin: 10px 0 !important;
+      padding: 10px 14px !important;
+      border-radius: 8px !important;
+      border-left: 4px solid !important;
+      font-size: 14px !important;
+      line-height: 1.65 !important;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08) !important;
+    }
+    [data-pbot-card] .pbot-label {
+      font-size: 10px !important;
+      font-weight: 700 !important;
+      text-transform: uppercase !important;
+      letter-spacing: 0.06em !important;
+      margin-bottom: 6px !important;
+    }
+    [data-pbot-card] .pbot-row { margin: 3px 0 !important; }
+    [data-pbot-card] .pbot-badge {
+      display: inline-block !important;
+      padding: 1px 6px !important;
+      border-radius: 4px !important;
+      font-size: 10px !important;
+      font-weight: 700 !important;
+      margin-right: 5px !important;
+      color: #fff !important;
+      vertical-align: middle !important;
+    }
+  `;
+  document.head.appendChild(style);
+
+  function esc(s) {
+    return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+
+  function findBlockAncestor(el) {
+    const BLOCKS = new Set(["P","LI","DT","DD","BLOCKQUOTE","H1","H2","H3","H4","H5","H6","TD","TH"]);
+    let cur = el.parentElement;
+    while (cur && cur !== document.body) {
+      if (BLOCKS.has(cur.tagName)) return cur;
+      cur = cur.parentElement;
+    }
+    return el.parentElement ?? document.body;
+  }
+
+  matches.forEach((match, i) => {
+    const color = COLORS[i % COLORS.length];
+
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
+      acceptNode(node) {
+        const p = node.parentElement;
+        if (!p) return NodeFilter.FILTER_REJECT;
+        if (["SCRIPT","STYLE","NOSCRIPT","TEXTAREA"].includes(p.tagName)) return NodeFilter.FILTER_REJECT;
+        if (p.closest("[data-pbot-card]")) return NodeFilter.FILTER_REJECT;
+        return NodeFilter.FILTER_ACCEPT;
+      },
+    });
+
+    let node;
+    while ((node = walker.nextNode())) {
+      const text = node.textContent;
+      const idx = text.indexOf(match.keyword);
+      if (idx === -1) continue;
+
+      // 텍스트 노드 분리 후 span으로 래핑
+      const before = document.createTextNode(text.slice(0, idx));
+      const hl = document.createElement("span");
+      hl.className = "pbot-hl";
+      hl.style.cssText = `background:${color.bg};color:${color.text};`;
+      hl.textContent = match.keyword;
+      const after = document.createTextNode(text.slice(idx + match.keyword.length));
+
+      const parent = node.parentNode;
+      parent.insertBefore(before, node);
+      parent.insertBefore(hl, node);
+      parent.insertBefore(after, node);
+      parent.removeChild(node);
+
+      // 가장 가까운 블록 요소 바로 뒤에 카드 삽입
+      const block = findBlockAncestor(hl);
+      const card = document.createElement("div");
+      card.setAttribute("data-pbot-card", i);
+      card.style.cssText = `border-left-color:${color.border} !important;background:${color.bg}40 !important;`;
+      card.innerHTML = `
+        <div class="pbot-label" style="color:${color.text}">💡 Proposal Bot 분석</div>
+        <div class="pbot-row">
+          <span class="pbot-badge" style="background:${color.border}">아픈 지점</span>${esc(match.painPoint)}
+        </div>
+        <div class="pbot-row">
+          <span class="pbot-badge" style="background:${color.text}">제안</span>${esc(match.proposal)}
+        </div>
+      `;
+      block.insertAdjacentElement("afterend", card);
+      break;
+    }
+  });
+}
