@@ -20,35 +20,27 @@ const MODEL_OPTIONS = {
 };
 
 // 설정
-const providerEl = document.getElementById("provider");
-const llmModelEl = document.getElementById("llmModel");
-const apiKeyEl = document.getElementById("apiKey");
+const providerEl      = document.getElementById("provider");
+const llmModelEl      = document.getElementById("llmModel");
+const apiKeyEl        = document.getElementById("apiKey");
 const toggleApiKeyBtn = document.getElementById("toggleApiKey");
-const eyeOpen = document.getElementById("eyeOpen");
-const eyeClosed = document.getElementById("eyeClosed");
-const llmToast = document.getElementById("llmToast");
+const eyeOpen         = document.getElementById("eyeOpen");
+const eyeClosed       = document.getElementById("eyeClosed");
+const llmToast        = document.getElementById("llmToast");
 
 // 프로필
 const profileRawEl = document.getElementById("profileRaw");
-const saveProfileBtn = document.getElementById("saveProfileBtn");
-const summarizeBtn = document.getElementById("summarizeBtn");
-const summaryBox = document.getElementById("summaryBox");
-const summaryTextEl = document.getElementById("summaryText");
-const clearSummaryBtn = document.getElementById("clearSummaryBtn");
 const profileToast = document.getElementById("profileToast");
 
 // 분석
 const analyzeBtn = document.getElementById("analyzeBtn");
-const resultEl = document.getElementById("result");
+const resultEl   = document.getElementById("result");
 
 // ── 초기 로드 ──────────────────────────────────────────────
 
 async function init() {
   const [profile, llm] = await Promise.all([getProfile(), getLlmConfig()]);
-
   if (profile?.raw) profileRawEl.value = profile.raw;
-  renderSummary(profile?.summary ?? null);
-
   const provider = llm?.provider ?? "gemini";
   providerEl.value = provider;
   updateModelOptions(provider, llm?.model ?? "");
@@ -59,15 +51,12 @@ async function init() {
 
 function initToggle(headerId, bodyId, defaultOpen = true) {
   const header = document.getElementById(headerId);
-  const body = document.getElementById(bodyId);
-
+  const body   = document.getElementById(bodyId);
   function setOpen(open) {
     header.classList.toggle("open", open);
     body.classList.toggle("hidden", !open);
   }
-
   setOpen(defaultOpen);
-
   header.addEventListener("click", () => setOpen(!header.classList.contains("open")));
   header.addEventListener("keydown", (e) => {
     if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setOpen(!header.classList.contains("open")); }
@@ -75,7 +64,7 @@ function initToggle(headerId, bodyId, defaultOpen = true) {
 }
 
 initToggle("settingsToggle", "settingsBody", true);
-initToggle("profileToggle", "profileBody", true);
+initToggle("profileToggle",  "profileBody",  true);
 
 // ── 설정 자동 저장 ─────────────────────────────────────────
 
@@ -91,20 +80,12 @@ function updateModelOptions(provider, savedModel) {
 
 async function saveLlmSettings() {
   await chrome.storage.local.set({
-    llm: {
-      provider: providerEl.value,
-      model: llmModelEl.value,
-      apiKey: apiKeyEl.value.trim(),
-    },
+    llm: { provider: providerEl.value, model: llmModelEl.value, apiKey: apiKeyEl.value.trim() },
   });
   showToast(llmToast);
 }
 
-providerEl.addEventListener("change", () => {
-  updateModelOptions(providerEl.value, "");
-  saveLlmSettings();
-});
-
+providerEl.addEventListener("change", () => { updateModelOptions(providerEl.value, ""); saveLlmSettings(); });
 llmModelEl.addEventListener("change", saveLlmSettings);
 apiKeyEl.addEventListener("change", saveLlmSettings);
 
@@ -118,44 +99,16 @@ toggleApiKeyBtn.addEventListener("click", () => {
   toggleApiKeyBtn.setAttribute("aria-pressed", String(isPassword));
 });
 
-// ── 프로필 ─────────────────────────────────────────────────
+// ── 프로필 자동 저장 (디바운스) ────────────────────────────
 
-function renderSummary(summary) {
-  if (summary) {
-    summaryTextEl.textContent = summary;
-    summaryBox.classList.remove("hidden");
-  } else {
-    summaryBox.classList.add("hidden");
-  }
-}
-
-saveProfileBtn.addEventListener("click", async () => {
-  const profile = await getProfile() ?? {};
-  await chrome.storage.local.set({ profile: { ...profile, raw: profileRawEl.value.trim() } });
-  showToast(profileToast);
-});
-
-summarizeBtn.addEventListener("click", async () => {
-  const raw = profileRawEl.value.trim();
-  if (!raw) { alert("프로필을 먼저 입력해 주세요."); return; }
-
-  summarizeBtn.disabled = true;
-  summarizeBtn.textContent = "요약 중...";
-  try {
-    throw new Error("LLM 요약은 다음 단계에서 구현됩니다.");
-  } catch (err) {
-    alert(err.message);
-  } finally {
-    summarizeBtn.disabled = false;
-    summarizeBtn.textContent = "프로필 요약하기";
-  }
-});
-
-clearSummaryBtn.addEventListener("click", async () => {
-  const profile = await getProfile() ?? {};
-  delete profile.summary;
-  await chrome.storage.local.set({ profile });
-  renderSummary(null);
+let profileTimer = null;
+profileRawEl.addEventListener("input", () => {
+  clearTimeout(profileTimer);
+  profileTimer = setTimeout(async () => {
+    const profile = await getProfile() ?? {};
+    await chrome.storage.local.set({ profile: { ...profile, raw: profileRawEl.value.trim() } });
+    showToast(profileToast);
+  }, 800);
 });
 
 // ── 분석 ───────────────────────────────────────────────────
@@ -163,65 +116,45 @@ clearSummaryBtn.addEventListener("click", async () => {
 analyzeBtn.addEventListener("click", async () => {
   resultEl.innerHTML = "";
   resultEl.classList.add("hidden");
-  setLoading(true);
 
   try {
     const profile = await getProfile();
-    const profileForAnalysis = profile?.summary ?? profile?.raw ?? "";
-
-    if (!profileForAnalysis) {
-      showCard("warn", "프로필 필요", "프로필을 입력하고 저장한 뒤, '프로필 요약하기'를 눌러 주세요.");
+    const profileText = profile?.raw ?? "";
+    if (!profileText) {
+      showCard("warn", "프로필 필요", "프로필을 먼저 입력해 주세요.");
       return;
     }
-    if (!profile?.summary) {
-      showCard("warn", "요약본 없음", "원본 프로필로 분석합니다. 토큰 절약을 위해 '프로필 요약하기'를 권장합니다.");
-    }
-
-    const llmConfig = await getLlmConfig();
 
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     if (!tab?.id) { showCard("error", "오류", "현재 탭을 찾을 수 없습니다."); return; }
 
-    let results;
+    const [llmConfig, guide] = await Promise.all([getLlmConfig(), getPainPointsGuide()]);
+
+    setLoading(true);
+
+    // 페이지 텍스트 추출
+    let jobText;
     try {
-      results = await chrome.scripting.executeScript({
+      const [{ result }] = await chrome.scripting.executeScript({
         target: { tabId: tab.id },
         func: () => document.body.innerText.slice(0, 20000),
       });
+      jobText = result;
     } catch {
       showCard("error", "추출 실패", "이 페이지에서는 텍스트를 추출할 수 없습니다.\n(chrome:// 페이지 등은 지원하지 않습니다.)");
       return;
     }
 
-    const jobText = results?.[0]?.result ?? "";
-    showCard("info", "추출 완료", `${jobText.length.toLocaleString()}자 추출됨`);
+    // LLM 분석
+    const result = await analyze({ profile: profileText, guide: guide ?? "", jobText, llmConfig });
 
-    const guide = await getPainPointsGuide();
-    analyzeBtn.textContent = "LLM 분석 중...";
+    // 페이지에 결과 주입
+    await chrome.scripting.executeScript({
+      target: { tabId: tab.id },
+      func: pbotInjectResults,
+      args: [result],
+    });
 
-    let result;
-    try {
-      result = await analyze({ profile: profileForAnalysis, guide: guide ?? "", jobText, llmConfig });
-    } catch (err) {
-      showCard("error", "LLM 오류", err.message);
-      return;
-    }
-
-    showCard("fit", `적합도 ${result.fitnessPercent ?? "?"}%`, "이 채용공고와의 매칭 적합도");
-
-    const matches = result.matches ?? [];
-    if (matches.length) {
-      try {
-        await chrome.scripting.executeScript({
-          target: { tabId: tab.id },
-          func: pbotInjectHighlights,
-          args: [matches],
-        });
-        showCard("info", `${matches.length}개 아픈 지점 발견`, "페이지에 하이라이트가 표시되었습니다. 스크롤하여 확인하세요.");
-      } catch {
-        showCard("warn", "하이라이트 실패", "페이지 주입에 실패했습니다.");
-      }
-    }
   } catch (err) {
     showCard("error", "오류", err.message);
   } finally {
@@ -231,14 +164,14 @@ analyzeBtn.addEventListener("click", async () => {
 
 // ── 유틸 ───────────────────────────────────────────────────
 
+function setLoading(on) {
+  analyzeBtn.disabled = on;
+  analyzeBtn.textContent = on ? "분석 중..." : "이 페이지 분석";
+}
+
 function showToast(el) {
   el.classList.remove("hidden");
   setTimeout(() => el.classList.add("hidden"), 2000);
-}
-
-function setLoading(on) {
-  analyzeBtn.disabled = on;
-  analyzeBtn.textContent = on ? "분석 중..." : "채용공고 분석하기";
 }
 
 function showCard(type, label, body) {
@@ -251,19 +184,12 @@ function showCard(type, label, body) {
 }
 
 function escapeHtml(str) {
-  return str
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/\n/g, "<br>");
+  return str.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\n/g,"<br>");
 }
 
-init();
+// ── 페이지 주입 함수 (executeScript로 실행 — 외부 스코프 참조 불가) ──────
 
-// ── 페이지 주입 함수 (executeScript로 페이지 컨텍스트에서 실행) ──────────
-// 이 함수는 팝업 스코프의 변수를 참조할 수 없음 — 완전히 자립적이어야 함
-
-function pbotInjectHighlights(matches) {
+function pbotInjectResults({ matches, fitnessPercent, fitnessReason }) {
   const COLORS = [
     { bg: "#dbeafe", border: "#3b82f6", text: "#1e40af" },
     { bg: "#d1fae5", border: "#10b981", text: "#065f46" },
@@ -272,58 +198,71 @@ function pbotInjectHighlights(matches) {
     { bg: "#fce7f3", border: "#ec4899", text: "#831843" },
   ];
 
-  // 이전 하이라이트 제거
   document.querySelectorAll("[data-pbot-card]").forEach(el => el.remove());
-  document.querySelectorAll(".pbot-hl").forEach(el => {
-    el.replaceWith(document.createTextNode(el.textContent));
-  });
+  document.querySelectorAll(".pbot-hl").forEach(el => el.replaceWith(document.createTextNode(el.textContent)));
   document.getElementById("pbot-style")?.remove();
+  document.getElementById("pbot-fitness")?.remove();
 
-  // 스타일 주입
   const style = document.createElement("style");
   style.id = "pbot-style";
   style.textContent = `
     .pbot-hl { border-radius: 3px; padding: 1px 3px; font-weight: 600; }
     [data-pbot-card] {
-      margin: 8px 0 !important;
-      padding: 9px 13px !important;
-      border-radius: 7px !important;
-      border-left: 4px solid !important;
-      font-size: 13px !important;
-      line-height: 1.6 !important;
+      margin: 8px 0 !important; padding: 9px 13px !important;
+      border-radius: 7px !important; border-left: 4px solid !important;
+      font-size: 13px !important; line-height: 1.6 !important;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
       box-shadow: 0 1px 3px rgba(0,0,0,0.07) !important;
     }
     [data-pbot-card] .pbot-label {
-      font-size: 9px !important;
-      font-weight: 700 !important;
-      text-transform: uppercase !important;
-      letter-spacing: 0.08em !important;
-      margin-bottom: 4px !important;
-      opacity: 0.7 !important;
+      font-size: 9px !important; font-weight: 700 !important;
+      text-transform: uppercase !important; letter-spacing: 0.08em !important;
+      margin-bottom: 4px !important; opacity: 0.7 !important;
     }
     [data-pbot-card] .pbot-msg { margin: 0 !important; }
+    #pbot-fitness {
+      position: fixed; bottom: 24px; right: 24px; z-index: 2147483647;
+      background: #fff; border-radius: 12px; padding: 14px 18px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15); min-width: 220px; max-width: 320px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      border-top: 4px solid #2563eb;
+    }
+    #pbot-fitness-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 8px; }
+    #pbot-fitness-score { font-size: 22px; font-weight: 800; color: #2563eb; line-height: 1.1; }
+    #pbot-fitness-label { font-size: 10px; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 2px; }
+    #pbot-fitness-reason { font-size: 12px; color: #374151; line-height: 1.6; }
+    #pbot-fitness-close { background: none; border: none; cursor: pointer; font-size: 16px; color: #9ca3af; padding: 0; line-height: 1; flex-shrink: 0; }
   `;
   document.head.appendChild(style);
 
+  const badge = document.createElement("div");
+  badge.id = "pbot-fitness";
+  badge.innerHTML = `
+    <div id="pbot-fitness-header">
+      <div>
+        <div id="pbot-fitness-label">💡 Proposal Bot · 적합도</div>
+        <div id="pbot-fitness-score">${fitnessPercent ?? "?"}%</div>
+      </div>
+      <button id="pbot-fitness-close" title="닫기">✕</button>
+    </div>
+    <div id="pbot-fitness-reason">${(fitnessReason ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}</div>
+  `;
+  document.body.appendChild(badge);
+  document.getElementById("pbot-fitness-close").addEventListener("click", () => badge.remove());
+
   function esc(s) {
-    return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
   }
 
   function highlightInMessage(message, keyword, color) {
     const escaped = esc(message);
     const escapedKw = esc(keyword);
     const hlStyle = `background:${color.bg};color:${color.text};border-radius:3px;padding:0 2px;font-weight:600`;
-    // 작은따옴표 포함 버전 우선 시도
     const withQuotes = `'${escapedKw}'`;
-    if (escaped.includes(withQuotes)) {
-      return escaped.replaceAll(withQuotes,
-        `<span style="${hlStyle}">'${escapedKw}'</span>`);
-    }
-    if (escaped.includes(escapedKw)) {
-      return escaped.replaceAll(escapedKw,
-        `<span style="${hlStyle}">${escapedKw}</span>`);
-    }
+    if (escaped.includes(withQuotes))
+      return escaped.replaceAll(withQuotes, `<span style="${hlStyle}">'${escapedKw}'</span>`);
+    if (escaped.includes(escapedKw))
+      return escaped.replaceAll(escapedKw, `<span style="${hlStyle}">${escapedKw}</span>`);
     return escaped;
   }
 
@@ -337,9 +276,8 @@ function pbotInjectHighlights(matches) {
     return el.parentElement ?? document.body;
   }
 
-  matches.forEach((match, i) => {
+  (matches ?? []).forEach((match, i) => {
     const color = COLORS[i % COLORS.length];
-
     const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
       acceptNode(node) {
         const p = node.parentElement;
@@ -347,6 +285,7 @@ function pbotInjectHighlights(matches) {
         if (["SCRIPT","STYLE","NOSCRIPT","TEXTAREA"].includes(p.tagName)) return NodeFilter.FILTER_REJECT;
         if (p.closest("[data-pbot-card]")) return NodeFilter.FILTER_REJECT;
         if (p.closest(".pbot-hl")) return NodeFilter.FILTER_REJECT;
+        if (p.closest("#pbot-fitness")) return NodeFilter.FILTER_REJECT;
         return NodeFilter.FILTER_ACCEPT;
       },
     });
@@ -357,7 +296,6 @@ function pbotInjectHighlights(matches) {
       const idx = text.indexOf(match.keyword);
       if (idx === -1) continue;
 
-      // 텍스트 노드 분리 후 span으로 래핑
       const before = document.createTextNode(text.slice(0, idx));
       const hl = document.createElement("span");
       hl.className = "pbot-hl";
@@ -371,7 +309,6 @@ function pbotInjectHighlights(matches) {
       parent.insertBefore(after, node);
       parent.removeChild(node);
 
-      // 가장 가까운 블록 요소 바로 뒤에 카드 삽입
       const block = findBlockAncestor(hl);
       const card = document.createElement("div");
       card.setAttribute("data-pbot-card", i);
@@ -385,3 +322,5 @@ function pbotInjectHighlights(matches) {
     }
   });
 }
+
+init();
