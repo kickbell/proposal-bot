@@ -227,6 +227,11 @@ textarea:focus {
   background: #fff;
 }
 
+textarea::placeholder,
+input::placeholder {
+  color: #c4c9d4;
+}
+
 button {
   width: 100%;
   border: none;
