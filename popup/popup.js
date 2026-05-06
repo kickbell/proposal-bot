@@ -1,20 +1,20 @@
 import { getProfile, getPainPointsGuide, getLlmConfig } from "../lib/storage.js";
-import { analyze } from "../lib/llm.js";
+import { analyze, DEFAULT_MODELS } from "../lib/llm.js";
 
 const MODEL_OPTIONS = {
   gemini: [
-    { value: "gemini-2.5-flash",      label: "Gemini 2.5 Flash (기본, 무료)" },
-    { value: "gemini-2.5-pro",        label: "Gemini 2.5 Pro (무료)" },
-    { value: "gemini-2.5-flash-lite", label: "Gemini 2.5 Flash Lite (빠름, 무료)" },
+    { value: "gemini-2.5-flash-lite", label: "Gemini 2.5 Flash Lite (빠름, 기본)" },
+    { value: "gemini-2.5-flash",      label: "Gemini 2.5 Flash" },
+    { value: "gemini-2.5-pro",        label: "Gemini 2.5 Pro (고성능)" },
   ],
   claude: [
-    { value: "claude-sonnet-4-6",         label: "Claude Sonnet 4.6 (기본)" },
+    { value: "claude-haiku-4-5-20251001", label: "Claude Haiku 4.5 (빠름, 기본)" },
+    { value: "claude-sonnet-4-6",         label: "Claude Sonnet 4.6" },
     { value: "claude-opus-4-7",           label: "Claude Opus 4.7 (고성능)" },
-    { value: "claude-haiku-4-5-20251001", label: "Claude Haiku 4.5 (빠름)" },
   ],
   openai: [
-    { value: "gpt-4o",      label: "GPT-4o (기본)" },
-    { value: "gpt-4o-mini", label: "GPT-4o Mini (빠름/저렴)" },
+    { value: "gpt-4o-mini", label: "GPT-4o Mini (빠름, 기본)" },
+    { value: "gpt-4o",      label: "GPT-4o" },
     { value: "o3-mini",     label: "o3-mini (추론 특화)" },
   ],
 };
@@ -47,7 +47,7 @@ async function init() {
   if (profile?.raw) profileRawEl.value = profile.raw;
   const provider = llm?.provider ?? "gemini";
   providerEl.value = provider;
-  updateModelOptions(provider, llm?.model ?? "");
+  updateModelOptions(provider, llm?.model ?? DEFAULT_MODELS[provider]);
   apiKeyEl.value = llm?.apiKey ?? "";
 }
 
@@ -89,7 +89,7 @@ async function saveLlmSettings() {
   showToast(llmToast);
 }
 
-providerEl.addEventListener("change", () => { updateModelOptions(providerEl.value, ""); saveLlmSettings(); });
+providerEl.addEventListener("change", () => { updateModelOptions(providerEl.value, DEFAULT_MODELS[providerEl.value]); saveLlmSettings(); });
 llmModelEl.addEventListener("change", saveLlmSettings);
 apiKeyEl.addEventListener("change", saveLlmSettings);
 
@@ -153,12 +153,26 @@ analyzeBtn.addEventListener("click", async () => {
     setProgress(10, "AI에게 분석을 요청하고 있어요...");
 
     // LLM 분석 — 시간이 걸리는 구간을 타이머로 진행률 시뮬레이션
-    const stopSim = startProgressSim(10, 90, 8000);
+    let activeSim = startProgressSim(10, 90, 15000);
     let result;
     try {
-      result = await analyze({ profile: profileText, guide: guide ?? "", jobText, llmConfig });
+      result = await analyze({
+        profile: profileText,
+        guide: guide ?? "",
+        jobText,
+        llmConfig,
+        onRetry(nextModel, errMsg) {
+          activeSim();
+          setProgress(0, `${errMsg}<br>다른 모델로 재시도할게요.`);
+          // 문구는 2초 표시, LLM 요청은 즉시 진행
+          const startNext = () => { activeSim = startProgressSim(0, 90, 15000); };
+          setTimeout(startNext, 2000);
+          llmModelEl.value = nextModel;
+          chrome.storage.local.set({ llm: { ...llmConfig, model: nextModel } });
+        },
+      });
     } finally {
-      stopSim();
+      activeSim();
     }
 
     setProgress(95, "결과를 화면에 표시하고 있어요...");
@@ -191,7 +205,7 @@ function setProgress(pct, label) {
   const clamped = Math.max(0, Math.min(100, pct));
   progressBar.style.strokeDashoffset = CIRCUMFERENCE * (1 - clamped / 100);
   progressPct.textContent = Math.round(clamped);
-  if (label) progressLabel.textContent = label;
+  if (label !== undefined) progressLabel.innerHTML = label;
 }
 
 const PROGRESS_LABELS = [
@@ -214,7 +228,7 @@ function startProgressSim(from, to, durationMs) {
   const dotId = setInterval(() => {
     if (!currentBaseLabel) return;
     dotCount = (dotCount % 6) + 1;
-    progressLabel.textContent = currentBaseLabel + ".".repeat(dotCount);
+    progressLabel.innerHTML = currentBaseLabel + ".".repeat(dotCount);
   }, 250);
 
   const id = setInterval(() => {
