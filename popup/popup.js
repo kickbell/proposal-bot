@@ -285,38 +285,46 @@ function pbotInjectHighlights(matches) {
   style.textContent = `
     .pbot-hl { border-radius: 3px; padding: 1px 3px; font-weight: 600; }
     [data-pbot-card] {
-      margin: 10px 0 !important;
-      padding: 10px 14px !important;
-      border-radius: 8px !important;
+      margin: 8px 0 !important;
+      padding: 9px 13px !important;
+      border-radius: 7px !important;
       border-left: 4px solid !important;
-      font-size: 14px !important;
-      line-height: 1.65 !important;
+      font-size: 13px !important;
+      line-height: 1.6 !important;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.08) !important;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.07) !important;
     }
     [data-pbot-card] .pbot-label {
-      font-size: 10px !important;
+      font-size: 9px !important;
       font-weight: 700 !important;
       text-transform: uppercase !important;
-      letter-spacing: 0.06em !important;
-      margin-bottom: 6px !important;
+      letter-spacing: 0.08em !important;
+      margin-bottom: 4px !important;
+      opacity: 0.7 !important;
     }
-    [data-pbot-card] .pbot-row { margin: 3px 0 !important; }
-    [data-pbot-card] .pbot-badge {
-      display: inline-block !important;
-      padding: 1px 6px !important;
-      border-radius: 4px !important;
-      font-size: 10px !important;
-      font-weight: 700 !important;
-      margin-right: 5px !important;
-      color: #fff !important;
-      vertical-align: middle !important;
-    }
+    [data-pbot-card] .pbot-msg { margin: 0 !important; }
   `;
   document.head.appendChild(style);
 
   function esc(s) {
     return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+
+  function highlightInMessage(message, keyword, color) {
+    const escaped = esc(message);
+    const escapedKw = esc(keyword);
+    const hlStyle = `background:${color.bg};color:${color.text};border-radius:3px;padding:0 2px;font-weight:600`;
+    // 작은따옴표 포함 버전 우선 시도
+    const withQuotes = `'${escapedKw}'`;
+    if (escaped.includes(withQuotes)) {
+      return escaped.replaceAll(withQuotes,
+        `<span style="${hlStyle}">'${escapedKw}'</span>`);
+    }
+    if (escaped.includes(escapedKw)) {
+      return escaped.replaceAll(escapedKw,
+        `<span style="${hlStyle}">${escapedKw}</span>`);
+    }
+    return escaped;
   }
 
   function findBlockAncestor(el) {
@@ -338,6 +346,7 @@ function pbotInjectHighlights(matches) {
         if (!p) return NodeFilter.FILTER_REJECT;
         if (["SCRIPT","STYLE","NOSCRIPT","TEXTAREA"].includes(p.tagName)) return NodeFilter.FILTER_REJECT;
         if (p.closest("[data-pbot-card]")) return NodeFilter.FILTER_REJECT;
+        if (p.closest(".pbot-hl")) return NodeFilter.FILTER_REJECT;
         return NodeFilter.FILTER_ACCEPT;
       },
     });
@@ -368,13 +377,8 @@ function pbotInjectHighlights(matches) {
       card.setAttribute("data-pbot-card", i);
       card.style.cssText = `border-left-color:${color.border} !important;background:${color.bg}40 !important;`;
       card.innerHTML = `
-        <div class="pbot-label" style="color:${color.text}">💡 Proposal Bot 분석</div>
-        <div class="pbot-row">
-          <span class="pbot-badge" style="background:${color.border}">아픈 지점</span>${esc(match.painPoint)}
-        </div>
-        <div class="pbot-row">
-          <span class="pbot-badge" style="background:${color.text}">제안</span>${esc(match.proposal)}
-        </div>
+        <div class="pbot-label" style="color:${color.text}">💡 Proposal Bot</div>
+        <div class="pbot-msg">${highlightInMessage(match.message ?? "", match.keyword, color)}</div>
       `;
       block.insertAdjacentElement("afterend", card);
       break;
