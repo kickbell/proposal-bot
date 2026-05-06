@@ -330,6 +330,8 @@ function pbotInjectResults({ matches, fitnessPercent, fitnessReason }) {
     return el.parentElement ?? document.body;
   }
 
+  let firstHl = null;
+
   (matches ?? []).forEach((match, i) => {
     const color = COLORS[i % COLORS.length];
     const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
@@ -363,6 +365,8 @@ function pbotInjectResults({ matches, fitnessPercent, fitnessReason }) {
       parent.insertBefore(after, node);
       parent.removeChild(node);
 
+      if (i === 0) firstHl = hl;
+
       const block = findBlockAncestor(hl);
       const card = document.createElement("div");
       card.setAttribute("data-pbot-card", i);
@@ -375,6 +379,10 @@ function pbotInjectResults({ matches, fitnessPercent, fitnessReason }) {
       break;
     }
   });
+
+  if (firstHl) {
+    firstHl.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
 }
 
 init();
