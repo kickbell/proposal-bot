@@ -33,8 +33,12 @@ const profileRawEl = document.getElementById("profileRaw");
 const profileToast = document.getElementById("profileToast");
 
 // 분석
-const analyzeBtn = document.getElementById("analyzeBtn");
-const resultEl   = document.getElementById("result");
+const analyzeBtn      = document.getElementById("analyzeBtn");
+const resultEl        = document.getElementById("result");
+const progressOverlay = document.getElementById("progressOverlay");
+const progressBar     = document.getElementById("progressBar");
+const progressPct     = document.getElementById("progressPct");
+const progressLabel   = document.getElementById("progressLabel");
 
 // ── 초기 로드 ──────────────────────────────────────────────
 
@@ -131,6 +135,7 @@ analyzeBtn.addEventListener("click", async () => {
     const [llmConfig, guide] = await Promise.all([getLlmConfig(), getPainPointsGuide()]);
 
     setLoading(true);
+    setProgress(0, "채용공고를 읽고 있어요...");
 
     // 페이지 텍스트 추출
     let jobText;
@@ -145,8 +150,18 @@ analyzeBtn.addEventListener("click", async () => {
       return;
     }
 
-    // LLM 분석
-    const result = await analyze({ profile: profileText, guide: guide ?? "", jobText, llmConfig });
+    setProgress(10, "AI에게 분석을 요청하고 있어요...");
+
+    // LLM 분석 — 시간이 걸리는 구간을 타이머로 진행률 시뮬레이션
+    const stopSim = startProgressSim(10, 90, 8000);
+    let result;
+    try {
+      result = await analyze({ profile: profileText, guide: guide ?? "", jobText, llmConfig });
+    } finally {
+      stopSim();
+    }
+
+    setProgress(95, "결과를 화면에 표시하고 있어요...");
 
     // 페이지에 결과 주입
     await chrome.scripting.executeScript({
@@ -154,6 +169,9 @@ analyzeBtn.addEventListener("click", async () => {
       func: pbotInjectResults,
       args: [result],
     });
+
+    setProgress(100, "분석 완료!");
+    await new Promise(r => setTimeout(r, 500));
 
   } catch (err) {
     showCard("error", "오류", err.message);
@@ -164,9 +182,45 @@ analyzeBtn.addEventListener("click", async () => {
 
 // ── 유틸 ───────────────────────────────────────────────────
 
+const CIRCUMFERENCE = 2 * Math.PI * 35; // r=35
+
+function setProgress(pct, label) {
+  const clamped = Math.max(0, Math.min(100, pct));
+  progressBar.style.strokeDashoffset = CIRCUMFERENCE * (1 - clamped / 100);
+  progressPct.textContent = Math.round(clamped);
+  if (label) progressLabel.textContent = label;
+}
+
+const PROGRESS_LABELS = [
+  { from: 10, label: "AI에게 분석을 요청하고 있어요..." },
+  { from: 25, label: "채용공고의 아픈 지점을 찾고 있어요..." },
+  { from: 40, label: "열심히 분석 중이에요..." },
+  { from: 55, label: "경력과 기술스택을 매칭하고 있어요..." },
+  { from: 70, label: "적합도를 계산하고 있어요..." },
+  { from: 82, label: "거의 다 됐어요!" },
+];
+
+function startProgressSim(from, to, durationMs) {
+  const step = (to - from) / (durationMs / 100);
+  let current = from;
+  let lastLabelIdx = -1;
+  const id = setInterval(() => {
+    current = Math.min(to, current + step);
+    const idx = PROGRESS_LABELS.findLastIndex(l => current >= l.from);
+    if (idx !== lastLabelIdx) {
+      lastLabelIdx = idx;
+      setProgress(current, idx >= 0 ? PROGRESS_LABELS[idx].label : null);
+    } else {
+      setProgress(current);
+    }
+  }, 100);
+  return () => clearInterval(id);
+}
+
 function setLoading(on) {
   analyzeBtn.disabled = on;
-  analyzeBtn.textContent = on ? "분석 중..." : "채용공고 분석하기";
+  progressOverlay.classList.toggle("hidden", !on);
+  if (!on) setProgress(0, "");
 }
 
 function showToast(el) {

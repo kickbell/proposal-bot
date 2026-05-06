@@ -341,3 +341,65 @@ button:disabled {
   letter-spacing: 0;
   text-transform: none;
 }
+
+/* 분석 중 딤 오버레이 */
+.progress-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  z-index: 9999;
+  backdrop-filter: blur(2px);
+}
+
+.progress-overlay.hidden {
+  display: none;
+}
+
+.progress-ring {
+  position: relative;
+  width: 80px;
+  height: 80px;
+}
+
+.progress-ring svg {
+  transform: rotate(-90deg);
+}
+
+.progress-ring__bg {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.2);
+  stroke-width: 6;
+}
+
+.progress-ring__bar {
+  fill: none;
+  stroke: #60a5fa;
+  stroke-width: 6;
+  stroke-linecap: round;
+  stroke-dasharray: 219.9;
+  stroke-dashoffset: 219.9;
+  transition: stroke-dashoffset 0.4s ease;
+}
+
+.progress-pct {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 17px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.progress-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.85);
+  letter-spacing: 0.01em;
+}
