@@ -200,7 +200,7 @@ const PROGRESS_LABELS = [
   { from: 40, label: "열심히 분석 중이에요" },
   { from: 55, label: "경력과 기술스택을 매칭하고 있어요" },
   { from: 70, label: "적합도를 계산하고 있어요" },
-  { from: 82, label: "거의 다 됐어요" },
+  { from: 82, label: "거의 다 됐어요. 10초 안에 끝나요" },
 ];
 
 function startProgressSim(from, to, durationMs) {
