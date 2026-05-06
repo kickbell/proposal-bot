@@ -3,14 +3,16 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Proposal Bot</title>
+    <title>Career Matchpoint</title>
     <link rel="stylesheet" href="popup.css" />
   </head>
   <body>
     <main class="container">
       <header class="header">
-        <h1>Proposal Bot</h1>
+        <h1>Career Matchpoint</h1>
       </header>
+
+      <div id="result" class="result hidden"></div>
 
       <!-- 설정 섹션 -->
       <section class="panel">
@@ -62,8 +64,6 @@
           <p id="profileToast" class="toast hidden">저장되었습니다.</p>
         </div>
       </section>
-
-      <div id="result" class="result hidden"></div>
 
       <button id="analyzeBtn" type="button">채용공고 분석하기</button>
     </main>

@@ -23,14 +23,14 @@ body {
 
 h1 {
   margin: 0;
-  font-size: 17px;
-  font-weight: 700;
+  font-size: 18px;
+  font-weight: 400;
 }
 
 h2 {
   margin: 0 0 10px;
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 400;
   color: #374151;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -71,7 +71,7 @@ h2 {
 
 .panel-title {
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 400;
   color: #374151;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -105,7 +105,7 @@ h2 {
 label {
   display: block;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 400;
   color: #6b7280;
   margin: 8px 0 3px;
 }
@@ -148,7 +148,7 @@ button {
   background: #2563eb;
   color: #fff;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 400;
   cursor: pointer;
 }
 
@@ -253,7 +253,7 @@ button:disabled {
   margin: 6px 0 0;
   font-size: 12px;
   color: #16a34a;
-  font-weight: 600;
+  font-weight: 400;
 }
 
 .hidden {
@@ -303,7 +303,7 @@ button:disabled {
 
 .card-label {
   font-size: 10px;
-  font-weight: 700;
+  font-weight: 400;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: #6b7280;
@@ -343,7 +343,7 @@ button:disabled {
 .card--fit .card-label {
   color: #1d4ed8;
   font-size: 14px;
-  font-weight: 700;
+  font-weight: 400;
   letter-spacing: 0;
   text-transform: none;
 }
@@ -399,13 +399,13 @@ button:disabled {
   align-items: center;
   justify-content: center;
   font-size: 17px;
-  font-weight: 700;
+  font-weight: 400;
   color: #fff;
 }
 
 .progress-label {
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 400;
   color: rgba(255, 255, 255, 0.85);
   letter-spacing: 0.01em;
 }
