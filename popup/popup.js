@@ -166,7 +166,7 @@ analyzeBtn.addEventListener("click", async () => {
 
 function setLoading(on) {
   analyzeBtn.disabled = on;
-  analyzeBtn.textContent = on ? "분석 중..." : "이 페이지 분석";
+  analyzeBtn.textContent = on ? "분석 중..." : "채용공고 분석하기";
 }
 
 function showToast(el) {
