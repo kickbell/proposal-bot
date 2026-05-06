@@ -27,10 +27,45 @@
         </div>
         <div class="panel-body" id="profileBody">
           <label for="profileRaw">나의 경력 · 도메인 지식 · 기술스택 등을 입력해주세요.<br><span class="label-note">(데이터는 브라우저 내에만 저장되며, 서버로 전송되지 않아요.)</span></label>
-          <textarea id="profileRaw" rows="6" placeholder="예시:
-5년차 백엔드 엔지니어. Java/Spring Boot 위주로 개발했고, Kafka·PostgreSQL·AWS 사용 경험 있음.
-핀테크 도메인 전문 — 결제·정산 파이프라인 설계 및 운영 경험.
-기술스택: Java, Spring Boot, Kafka, PostgreSQL, Redis, AWS (ECS/RDS/SQS)"></textarea>
+          <textarea id="profileRaw" rows="6" placeholder="500~2,000자 내외를 권장해요. 경력이 없다면 학습 중인 기술과 프로젝트 경험도 좋아요!
+
+예시)
+AI/ML 엔지니어 6년차. Python, PyTorch, TensorFlow 전문.
+도메인: 추천시스템, 자연어처리(NLP), 컴퓨터비전, MLOps.
+현재: LLM 파인튜닝 및 RAG 파이프라인 설계·운영.
+
+기술스택:
+- ML/DL: PyTorch, TensorFlow, HuggingFace Transformers, LangChain
+- MLOps: MLflow, Kubeflow, Airflow, Docker, Kubernetes
+- 데이터: Spark, Kafka, Redshift, PostgreSQL, MongoDB
+- 인프라: AWS(SageMaker, EC2, S3, Lambda), GCP(Vertex AI)
+- 서빙: FastAPI, TorchServe, Triton Inference Server
+
+주요 경험:
+- LLM 파인튜닝: LLaMA3, Mistral 기반 도메인 특화 모델 학습. LoRA/QLoRA 적용으로 GPU 비용 60% 절감.
+- RAG 파이프라인: Elasticsearch + pgvector 기반 하이브리드 검색, 답변 정확도 73% → 91% 향상.
+- 추천시스템: Two-Tower 모델 설계, 실시간 피처 서빙(Redis), DAU 200만 서비스 A/B 테스트 운영.
+- 이상탐지: 금융 거래 데이터 기반 이상탐지 모델 (Isolation Forest + LSTM), False Positive 40% 감소.
+- NLP 파이프라인: 고객 리뷰 감성분석 자동화, BERT 파인튜닝, 월 50만 건 처리.
+
+주요 프로젝트:
+① 사내 LLM 챗봇 플랫폼 구축
+- 기술: GPT-4o API, LangChain, pgvector, FastAPI, React
+- 성과: 사내 문서 기반 QA 시스템, 직원 1,200명 사용, 문서 검색 시간 70% 단축
+- 특이사항: 프롬프트 캐싱으로 API 비용 45% 절감
+
+② 실시간 추천 엔진 (이커머스)
+- 기술: Two-Tower, Kafka, Redis, Kubernetes, Triton
+- 성과: CTR 18% 향상, 구매전환율 12% 개선, 지연시간 p99 기준 80ms 이하 유지
+- 규모: 일 거래 500만 건, 상품 카탈로그 300만 개
+
+③ MLOps 플랫폼 내재화
+- 기술: Kubeflow, MLflow, Airflow, ArgoCD, Grafana
+- 성과: 모델 배포 주기 2주 → 1일로 단축, 실험 추적 자동화, 롤백 시간 90% 감소
+- 팀: ML 엔지니어 8명 대상 플랫폼 도입 및 교육 주도
+
+자격증: AWS Certified ML Specialty, Google Professional ML Engineer
+논문: KDD 2023 워크샵 발표 (추천시스템 Cold-Start 문제 해결)"></textarea>
 
           <p id="profileToast" class="toast hidden">저장되었습니다.</p>
         </div>
