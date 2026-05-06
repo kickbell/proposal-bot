@@ -9,7 +9,10 @@
   <body>
     <main class="container">
       <header class="header">
-        <h1>Career Matchpoint</h1>
+        <div class="header-title">
+          <img src="../icons/icon48.png" alt="Career Matchpoint" class="header-icon" />
+          <h1>Career Matchpoint</h1>
+        </div>
       </header>
 
       <div id="result" class="result hidden"></div>
@@ -31,7 +34,14 @@
           <label for="llmModel">모델</label>
           <select id="llmModel"></select>
 
-          <label for="apiKey">API 키</label>
+          <label for="apiKey">API 키
+            <button id="helpBtn" class="help-btn" type="button" data-tooltip="API 키 발급 방법">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                <path d="M12 16v-4m0-4h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </button>
+          </label>
           <div class="input-with-btn">
             <input id="apiKey" type="password" placeholder="API 키를 입력하세요" autocomplete="off" />
             <button id="toggleApiKey" class="eye-btn" type="button" title="API 키 보기/숨기기" aria-pressed="false">

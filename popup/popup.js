@@ -40,6 +40,11 @@ const progressBar     = document.getElementById("progressBar");
 const progressPct     = document.getElementById("progressPct");
 const progressLabel   = document.getElementById("progressLabel");
 
+// 도움말
+document.getElementById("helpBtn").addEventListener("click", () => {
+  chrome.tabs.create({ url: "https://github.com/kickbell/proposal-bot/wiki" });
+});
+
 // ── 초기 로드 ──────────────────────────────────────────────
 
 async function init() {

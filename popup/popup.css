@@ -5,7 +5,6 @@
 body {
   margin: 0;
   width: 360px;
-  overflow: hidden;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   background: #f6f8fb;
   color: #1f2937;
@@ -24,10 +23,88 @@ body {
   margin-bottom: 12px;
 }
 
+.header-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.header-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+}
+
 h1 {
   margin: 0;
   font-size: 18px;
   font-weight: 400;
+}
+
+.help-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  padding: 0;
+  margin-left: 4px;
+  background: none;
+  border: none;
+  color: #6b7280;
+  cursor: pointer;
+  vertical-align: -2px;
+  line-height: 0;
+  border-radius: 3px;
+}
+
+.help-btn:hover {
+  color: #2563eb;
+  background: none;
+}
+
+.help-btn[data-tooltip] {
+  position: relative;
+}
+
+.help-btn[data-tooltip]::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 2px);
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: #2563eb;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.1s;
+  transition-delay: 0s;
+}
+
+.help-btn[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 12px);
+  transform: translateX(-50%);
+  background: #2563eb;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 400;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  white-space: nowrap;
+  padding: 6px 10px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.1s;
+  transition-delay: 0s;
+}
+
+.help-btn[data-tooltip]:hover::before,
+.help-btn[data-tooltip]:hover::after {
+  opacity: 1;
+  transition-delay: 0.1s;
 }
 
 h2 {
