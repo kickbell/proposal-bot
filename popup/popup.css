@@ -36,46 +36,54 @@ h2 {
   letter-spacing: 0.04em;
 }
 
-.icon-btn {
-  width: auto;
-  background: none;
-  border: 1.5px solid #d1d5db;
-  border-radius: 7px;
-  cursor: pointer;
-  padding: 5px 7px;
-  line-height: 0;
-  color: #6b7280;
-  transition: background 0.15s, border-color 0.15s, color 0.15s;
-}
-
-.icon-btn svg {
-  fill: currentColor;
-  display: block;
-}
-
-.icon-btn:hover {
-  border-color: #2563eb;
-  color: #2563eb;
-}
-
-/* 활성(설정 열림) 상태 */
-.icon-btn.active {
-  background: #2563eb;
-  border-color: #2563eb;
-  color: #fff;
-}
-
-.settings-panel {
+.panel {
   background: #fff;
   border-radius: 10px;
-  padding: 12px 14px;
   margin-bottom: 10px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.07);
-  border: 1px solid #e0e7ff;
+  overflow: hidden;
 }
 
-.settings-panel input,
-.settings-panel select {
+.panel-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 14px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.panel-header:hover {
+  background: #f9fafb;
+}
+
+.toggle-icon {
+  font-size: 14px;
+  color: #9ca3af;
+  display: inline-block;
+  transition: transform 0.2s;
+  line-height: 1;
+}
+
+.panel-header.open .toggle-icon {
+  transform: rotate(90deg);
+}
+
+.panel-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #374151;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.panel-body {
+  padding: 0 14px 12px;
+  border-top: 1px solid #f3f4f6;
+}
+
+.panel-body input,
+.panel-body select {
   width: 100%;
   box-sizing: border-box;
   border: 1px solid #e5e7eb;
@@ -87,19 +95,11 @@ h2 {
   background: #fafafa;
 }
 
-.settings-panel input:focus,
-.settings-panel select:focus {
+.panel-body input:focus,
+.panel-body select:focus {
   outline: none;
   border-color: #2563eb;
   background: #fff;
-}
-
-.profile-section {
-  background: #fff;
-  border-radius: 10px;
-  padding: 12px 14px;
-  margin-bottom: 10px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.07);
 }
 
 label {
@@ -252,6 +252,34 @@ button:disabled {
 
 .hidden {
   display: none;
+}
+
+.input-with-btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-with-btn input {
+  padding-right: 34px;
+}
+
+.eye-btn {
+  position: absolute;
+  right: 6px;
+  width: auto;
+  background: none;
+  border: none;
+  padding: 3px;
+  cursor: pointer;
+  color: #9ca3af;
+  line-height: 0;
+  border-radius: 4px;
+}
+
+.eye-btn:hover {
+  background: #f3f4f6;
+  color: #374151;
 }
 
 /* 결과 영역 — 분석 버튼 위에 위치 */

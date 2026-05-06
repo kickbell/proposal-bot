@@ -1,13 +1,31 @@
 import { getProfile, getPainPointsGuide, getLlmConfig } from "../lib/storage.js";
 import { analyze } from "../lib/llm.js";
 
-// 설정 패널
-const optionsBtn = document.getElementById("optionsBtn");
-const settingsPanel = document.getElementById("settingsPanel");
+const MODEL_OPTIONS = {
+  gemini: [
+    { value: "gemini-2.5-flash",      label: "Gemini 2.5 Flash (기본, 무료)" },
+    { value: "gemini-2.5-pro",        label: "Gemini 2.5 Pro (무료)" },
+    { value: "gemini-2.5-flash-lite", label: "Gemini 2.5 Flash Lite (빠름, 무료)" },
+  ],
+  claude: [
+    { value: "claude-sonnet-4-6",         label: "Claude Sonnet 4.6 (기본)" },
+    { value: "claude-opus-4-7",           label: "Claude Opus 4.7 (고성능)" },
+    { value: "claude-haiku-4-5-20251001", label: "Claude Haiku 4.5 (빠름)" },
+  ],
+  openai: [
+    { value: "gpt-4o",      label: "GPT-4o (기본)" },
+    { value: "gpt-4o-mini", label: "GPT-4o Mini (빠름/저렴)" },
+    { value: "o3-mini",     label: "o3-mini (추론 특화)" },
+  ],
+};
+
+// 설정
 const providerEl = document.getElementById("provider");
 const llmModelEl = document.getElementById("llmModel");
 const apiKeyEl = document.getElementById("apiKey");
-const saveLlmBtn = document.getElementById("saveLlmBtn");
+const toggleApiKeyBtn = document.getElementById("toggleApiKey");
+const eyeOpen = document.getElementById("eyeOpen");
+const eyeClosed = document.getElementById("eyeClosed");
 const llmToast = document.getElementById("llmToast");
 
 // 프로필
@@ -31,29 +49,73 @@ async function init() {
   if (profile?.raw) profileRawEl.value = profile.raw;
   renderSummary(profile?.summary ?? null);
 
-  providerEl.value = llm?.provider ?? "gemini";
-  llmModelEl.value = llm?.model ?? "";
+  const provider = llm?.provider ?? "gemini";
+  providerEl.value = provider;
+  updateModelOptions(provider, llm?.model ?? "");
   apiKeyEl.value = llm?.apiKey ?? "";
 }
 
-// ── 설정 토글 ──────────────────────────────────────────────
+// ── 패널 토글 ──────────────────────────────────────────────
 
-optionsBtn.addEventListener("click", () => {
-  const open = settingsPanel.classList.toggle("hidden") === false;
-  optionsBtn.classList.toggle("active", open);
-  optionsBtn.setAttribute("aria-pressed", String(open));
-  optionsBtn.title = open ? "설정 닫기" : "LLM 설정";
-});
+function initToggle(headerId, bodyId, defaultOpen = true) {
+  const header = document.getElementById(headerId);
+  const body = document.getElementById(bodyId);
 
-saveLlmBtn.addEventListener("click", async () => {
+  function setOpen(open) {
+    header.classList.toggle("open", open);
+    body.classList.toggle("hidden", !open);
+  }
+
+  setOpen(defaultOpen);
+
+  header.addEventListener("click", () => setOpen(!header.classList.contains("open")));
+  header.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setOpen(!header.classList.contains("open")); }
+  });
+}
+
+initToggle("settingsToggle", "settingsBody", true);
+initToggle("profileToggle", "profileBody", true);
+
+// ── 설정 자동 저장 ─────────────────────────────────────────
+
+function updateModelOptions(provider, savedModel) {
+  const options = MODEL_OPTIONS[provider] ?? [];
+  llmModelEl.innerHTML = options
+    .map(o => `<option value="${o.value}"${o.value === savedModel ? " selected" : ""}>${o.label}</option>`)
+    .join("");
+  if (savedModel && !options.find(o => o.value === savedModel)) {
+    llmModelEl.insertAdjacentHTML("afterbegin", `<option value="${savedModel}" selected>${savedModel}</option>`);
+  }
+}
+
+async function saveLlmSettings() {
   await chrome.storage.local.set({
     llm: {
       provider: providerEl.value,
-      model: llmModelEl.value.trim(),
+      model: llmModelEl.value,
       apiKey: apiKeyEl.value.trim(),
     },
   });
   showToast(llmToast);
+}
+
+providerEl.addEventListener("change", () => {
+  updateModelOptions(providerEl.value, "");
+  saveLlmSettings();
+});
+
+llmModelEl.addEventListener("change", saveLlmSettings);
+apiKeyEl.addEventListener("change", saveLlmSettings);
+
+// ── API 키 표시 토글 ───────────────────────────────────────
+
+toggleApiKeyBtn.addEventListener("click", () => {
+  const isPassword = apiKeyEl.type === "password";
+  apiKeyEl.type = isPassword ? "text" : "password";
+  eyeOpen.classList.toggle("hidden", isPassword);
+  eyeClosed.classList.toggle("hidden", !isPassword);
+  toggleApiKeyBtn.setAttribute("aria-pressed", String(isPassword));
 });
 
 // ── 프로필 ─────────────────────────────────────────────────
@@ -80,7 +142,6 @@ summarizeBtn.addEventListener("click", async () => {
   summarizeBtn.disabled = true;
   summarizeBtn.textContent = "요약 중...";
   try {
-    // TODO(다음 라운드): LLM API로 raw → summary 압축
     throw new Error("LLM 요약은 다음 단계에서 구현됩니다.");
   } catch (err) {
     alert(err.message);
