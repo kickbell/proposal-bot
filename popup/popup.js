@@ -1,4 +1,5 @@
-import { getProfile, getLlmConfig } from "../lib/storage.js";
+import { getProfile, getPainPointsGuide, getLlmConfig } from "../lib/storage.js";
+import { analyze } from "../lib/llm.js";
 
 // 설정 패널
 const optionsBtn = document.getElementById("optionsBtn");
@@ -132,11 +133,29 @@ analyzeBtn.addEventListener("click", async () => {
     }
 
     const jobText = results?.[0]?.result ?? "";
-    const preview = jobText.slice(0, 200).replace(/\n+/g, " ");
-
     showCard("info", "추출 완료", `${jobText.length.toLocaleString()}자 추출됨`);
-    showCard("info", "미리보기", preview + (jobText.length > 200 ? "…" : ""));
-    showCard("warn", "LLM 분석", "LLM 호출은 다음 단계에서 구현됩니다.\n(provider: " + (llmConfig?.provider ?? "gemini") + ")");
+
+    const guide = await getPainPointsGuide();
+    analyzeBtn.textContent = "LLM 분석 중...";
+
+    let result;
+    try {
+      result = await analyze({ profile: profileForAnalysis, guide: guide ?? "", jobText, llmConfig });
+    } catch (err) {
+      showCard("error", "LLM 오류", err.message);
+      return;
+    }
+
+    showCard("fit", `적합도 ${result.fitnessPercent ?? "?"}%`, "이 채용공고와의 매칭 적합도");
+
+    if (result.painPoints?.length) {
+      showCard("info", "회사의 아픈 지점",
+        result.painPoints.map((p, i) => `${i + 1}. ${p}`).join("\n"));
+    }
+    if (result.proposals?.length) {
+      showCard("info", "기술 제안 방향",
+        result.proposals.map((p, i) => `${i + 1}. ${p}`).join("\n"));
+    }
   } catch (err) {
     showCard("error", "오류", err.message);
   } finally {
@@ -158,7 +177,8 @@ function setLoading(on) {
 
 function showCard(type, label, body) {
   const card = document.createElement("div");
-  card.className = `card${type === "error" ? " card--error" : type === "warn" ? " card--warn" : ""}`;
+  const modifier = { error: " card--error", warn: " card--warn", fit: " card--fit" }[type] ?? "";
+  card.className = `card${modifier}`;
   card.innerHTML = `<div class="card-label">${label}</div><div class="card-body">${escapeHtml(body)}</div>`;
   resultEl.appendChild(card);
   resultEl.classList.remove("hidden");

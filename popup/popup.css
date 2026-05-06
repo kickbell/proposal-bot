@@ -300,3 +300,16 @@ button:disabled {
 .card--warn .card-body {
   color: #92400e;
 }
+
+.card--fit {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+}
+
+.card--fit .card-label {
+  color: #1d4ed8;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: none;
+}
