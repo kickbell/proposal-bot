@@ -2,6 +2,10 @@
   color-scheme: light;
 }
 
+html {
+  overflow-y: auto;
+}
+
 body {
   margin: 0;
   width: 400px;
