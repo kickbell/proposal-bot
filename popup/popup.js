@@ -150,6 +150,18 @@ profileRawEl.addEventListener("input", () => {
 
 // ── 분석 ───────────────────────────────────────────────────
 
+function waitForTabLoad(tabId) {
+  return new Promise((resolve) => {
+    function listener(updatedTabId, changeInfo) {
+      if (updatedTabId === tabId && changeInfo.status === "complete") {
+        chrome.tabs.onUpdated.removeListener(listener);
+        setTimeout(resolve, 500);
+      }
+    }
+    chrome.tabs.onUpdated.addListener(listener);
+  });
+}
+
 analyzeBtn.addEventListener("click", async () => {
   resultEl.innerHTML = "";
   resultEl.classList.add("hidden");
@@ -168,7 +180,14 @@ analyzeBtn.addEventListener("click", async () => {
     const [llmConfig, guide] = await Promise.all([getLlmConfig(), getPainPointsGuide()]);
 
     setLoading(true);
-    setProgress(0, "채용공고를 읽고 있어요...");
+    setProgress(0, "페이지를 새로고침하고 있어요...");
+
+    // 페이지 새로고침 후 로드 완료 대기
+    const loadPromise = waitForTabLoad(tab.id);
+    chrome.tabs.reload(tab.id);
+    await loadPromise;
+
+    setProgress(5, "채용공고를 읽고 있어요...");
 
     // 페이지 텍스트 추출
     let jobText;
@@ -183,10 +202,10 @@ analyzeBtn.addEventListener("click", async () => {
       return;
     }
 
-    setProgress(10, "AI에게 분석을 요청하고 있어요...");
+    setProgress(8, "AI에게 분석을 요청하고 있어요...");
 
     // LLM 분석 — 시간이 걸리는 구간을 타이머로 진행률 시뮬레이션
-    let activeSim = startProgressSim(10, 90, 15000);
+    let activeSim = startProgressSim(8, 90, 15000);
     let result;
     try {
       result = await analyze({
