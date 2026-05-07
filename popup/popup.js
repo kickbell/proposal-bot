@@ -62,13 +62,21 @@ helpBtn.addEventListener("click", () => {
 // ── 초기 로드 ──────────────────────────────────────────────
 
 async function init() {
-  const [profile, llm] = await Promise.all([getProfile(), getLlmConfig()]);
+  const [[profile, llm], [tab], { lastAnalysis }] = await Promise.all([
+    Promise.all([getProfile(), getLlmConfig()]),
+    chrome.tabs.query({ active: true, currentWindow: true }),
+    chrome.storage.local.get("lastAnalysis"),
+  ]);
   if (profile?.raw) profileRawEl.value = profile.raw;
   const provider = llm?.provider ?? "gemini";
   providerEl.value = provider;
   updateModelOptions(provider, llm?.model ?? DEFAULT_MODELS[provider]);
   apiKeyEl.value = llm?.apiKey ?? "";
   updateHelpBtn(provider);
+
+  if (lastAnalysis && tab && lastAnalysis.tabId === tab.id && lastAnalysis.tabUrl === tab.url) {
+    showFitnessCard(lastAnalysis, { savedMsg: lastAnalysis.msg });
+  }
 }
 
 // ── 패널 토글 ──────────────────────────────────────────────
@@ -210,7 +218,7 @@ analyzeBtn.addEventListener("click", async () => {
     });
 
     // 팝업에 적합도 카드 표시
-    showFitnessCard(result);
+    showFitnessCard(result, { tabId: tab.id, tabUrl: tab.url });
 
     setProgress(100, "분석 완료!");
     await new Promise(r => setTimeout(r, 500));
@@ -376,11 +384,11 @@ function fitnessColor(pct) {
   return           { bg: "#fef2f2", border: "#fecaca", score: "#dc2626" };
 }
 
-function showFitnessCard({ fitnessPercent, fitnessReason }) {
+function showFitnessCard({ fitnessPercent, fitnessReason }, { tabId, tabUrl, savedMsg } = {}) {
   const pct = fitnessPercent ?? 0;
   const c = fitnessColor(pct);
   const msgs = FITNESS_MESSAGES[fitnessTier(pct)];
-  const msg = msgs[Math.floor(Math.random() * msgs.length)];
+  const msg = savedMsg ?? msgs[Math.floor(Math.random() * msgs.length)];
   const card = document.createElement("div");
   card.className = "card card--fitness";
   card.style.cssText = `background:${c.bg};border-color:${c.border};`;
@@ -390,6 +398,10 @@ function showFitnessCard({ fitnessPercent, fitnessReason }) {
   `;
   resultEl.appendChild(card);
   resultEl.classList.remove("hidden");
+
+  if (tabId && tabUrl) {
+    chrome.storage.local.set({ lastAnalysis: { fitnessPercent: pct, fitnessReason, msg, tabId, tabUrl } });
+  }
 }
 
 // ── 페이지 주입 함수 (executeScript로 실행 — 외부 스코프 참조 불가) ──────
