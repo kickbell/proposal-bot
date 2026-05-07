@@ -4,7 +4,8 @@
       "WebSearch",
       "WebFetch(domain:ai.google.dev)",
       "Bash(git add *)",
-      "Bash(git commit -m ' *)"
+      "Bash(git commit -m ' *)",
+      "Bash(git rm *)"
     ]
   }
 }
